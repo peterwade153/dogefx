@@ -88,6 +88,8 @@ async def fetch_exchange_conversion(item: ExchangeItem) -> dict:
 async def currency_converter(item: ExchangeItem) -> float:
     """
     Converts an amount from one currency to a desired currency
+    Check if exchange rate already exists before a request is sent to the openexchangesrate
+    API.
     """
     result = 0.00
     amount = item.amount
@@ -120,8 +122,8 @@ async def convert_currency(
                 "summary": "A conversion request",
                 "description": "Converts from currency to another, on the current exchange rate",
                 "value": { 
-                    "currency_from": "GBP",
-                    "currency_to": "USD",
+                    "currency_from": "USD",
+                    "currency_to": "EUR",
                     "amount": 22,
                     }
                 }, 
@@ -130,8 +132,8 @@ async def convert_currency(
                 "description": "Converts from currency to another,"
                     "using exchange rate on the historic date. This goes back to 1st Jan 1999", 
                 "value": { 
-                    "currency_from": "GBP",
-                    "currency_to": "USD",
+                    "currency_from": "USD",
+                    "currency_to": "EUR",
                     "amount": 22,
                     "historic_date": "2022-01-17"
                     } 
@@ -141,7 +143,8 @@ async def convert_currency(
     ):
     """
     Converts from one currency to another using exchange rates
-    from https://openexchangerates.org/ 
+    from https://openexchangerates.org/ \n
+    For the free account with openexchangerates, only USD is supported for currency_from (base currency)
     """
     if item.historic_date is None:
         item.historic_date = str(date.today())
