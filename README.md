@@ -24,6 +24,11 @@ Create An account with Openexchangerates to get an API KEY @ https://openexchang
 
 5. Replace the variables in the sample file with the actual variables e.g. API KEY etc.
 
+### Start Redis Server
+```
+redis-server
+```
+
 ### Start Server
 ```
 uvicorn main:app --reload
