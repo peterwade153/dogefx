@@ -3,7 +3,9 @@ Forex exchange API
 
 Built with Python 3.8, FastAPI. Requires Installation of Redis
 
-Create An account with Openexchangerates to get an API KEY @ https://openexchangerates.org/ 
+Create An account with Openexchangerates to get an API KEY @ https://openexchangerates.org/
+
+
 
 
 ### Installation
@@ -38,3 +40,8 @@ uvicorn main:app --reload
 ```
 http://localhost:8000/docs
 ```
+
+#### CACHING
+Redis is using for caching.
+- Listing currencies support response is cached for a day, assumption these are not updated often
+- Exchange rates are also cached for day.
