@@ -12,15 +12,24 @@ Create An account with Openexchangerates to get an API KEY @ https://openexchang
 
 2. Move into the project folder
    ```
-   $ cd doge-fx
+    cd dogefx
    ```
 
 3. Install dependencies 
    ```
-   $ pip install -r requirements.txt
+    pip install -r requirements.txt
    ```
 
 4. Create a `.env` file from the `.env.sample` file. 
 
 5. Replace the variables in the sample file with the actual variables e.g. API KEY etc.
 
+### Start Server
+```
+uvicorn main:app --reload
+```
+
+#### The API is the accessible at the URL below
+```
+http://localhost:8000/docs
+```
