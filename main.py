@@ -2,7 +2,7 @@ import json
 from datetime import date
 
 import httpx
-from fastapi import FastAPI
+from fastapi import Body, FastAPI
 
 from config import settings
 from redis import redis_pool
@@ -112,7 +112,33 @@ async def list_currencies():
     return await get_supported_currencies()
 
 @app.post("/convert/")
-async def convert_currency(item: ExchangeItem):
+async def convert_currency(
+    item: ExchangeItem = Body( 
+        ...,
+        examples={
+            "normal": {
+                "summary": "A conversion request",
+                "description": "Converts from currency to another, on the current exchange rate",
+                "value": { 
+                    "currency_from": "GBP",
+                    "currency_to": "USD",
+                    "amount": 22,
+                    }
+                }, 
+            "historic_request": {
+                "summary": "A historic conversion request", 
+                "description": "Converts from currency to another,"
+                    "using exchange rate on the historic date. This goes back to 1st Jan 1999", 
+                "value": { 
+                    "currency_from": "GBP",
+                    "currency_to": "USD",
+                    "amount": 22,
+                    "historic_date": "2022-01-17"
+                    } 
+                } 
+            },
+        ),
+    ):
     """
     Converts from one currency to another using exchange rates
     from https://openexchangerates.org/ 
