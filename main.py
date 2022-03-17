@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from config import settings
 from redis import redis_pool
+from schemas import ExchangeItem
 
 
 app = FastAPI()
@@ -67,12 +68,59 @@ async def get_supported_currencies() -> str:
             await set_cache(key, json.dumps(res))
         return res
 
+def get_exchange_rate_key(item: ExchangeItem) -> str:
+    """
+    Generate a caching key for exchanging currency from one to another for today
+    """
+    key = f"{item.currency_from}_{item.currency_to}_{item.historic_date}"
+    return key
+
+async def fetch_exchange_conversion(item: ExchangeItem) -> dict:
+    """
+    Fetch exchange rates for conversion from one currency to another
+    """
+    async with httpx.AsyncClient() as client:
+        url = f"{settings.base_api_url}/historical/{item.historic_date}"\
+            f".json?app_id={settings.api_key}&base={item.currency_from}&symbols={item.currency_to}"
+        result = await get_request(client, url)
+        return result
+
+async def currency_converter(item: ExchangeItem) -> float:
+    """
+    Converts an amount from one currency to a desired currency
+    """
+    result = 0.00
+    amount = item.amount
+    cache_key = get_exchange_rate_key(item)
+    cached_exchange_rate = await get_value_from_cache(cache_key)
+    if cached_exchange_rate:
+        result = amount * float(cached_exchange_rate)
+        return result
+    # Fetch rate from API
+    res = await fetch_exchange_conversion(item)
+    if 'rates' in res:
+        exchange_rate = res['rates'][item.currency_to]
+        result =  exchange_rate * amount
+        await set_cache(cache_key, str(exchange_rate))
+    return result
+
 @app.get("/currencies/")
 async def list_currencies():
     """
-    Currencies supported for conversions.
+    Endpoint returns Currencies supported for conversions.
     """
     return await get_supported_currencies()
+
+@app.post("/convert/")
+async def convert_currency(item: ExchangeItem):
+    """
+    Converts from one currency to another using exchange rates
+    from https://openexchangerates.org/ 
+    """
+    if item.historic_date is None:
+        item.historic_date = str(date.today())
+    result = await currency_converter(item)
+    return result
 
 @app.on_event("startup")
 async def create_redis():
